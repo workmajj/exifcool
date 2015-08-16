@@ -1,7 +1,15 @@
+NAME = exifcool
+
+CC=clang
 CFLAGS=-Wall -g
+LIBS=-lexif
 
-all: exifcool
+all: clean exifcool
 
+exifcool:
+	$(CC) -o $(NAME) $(LIBS) $(NAME).c
+
+.PHONY: clean
 clean:
-	rm -f exifcool
-	rm -rf exifcool.dSYM
+	rm -f $(NAME)
+	rm -rf $(NAME).dSYM
