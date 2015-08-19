@@ -17,7 +17,7 @@ int main(int argc, char *argv[])
 
     struct dirent *ep;
     while ((ep = readdir(dp))) {
-        if (DT_REG != ep->d_type) continue; // TODO: abstract and check ext
+        if (ep->d_type != DT_REG) continue; // TODO: abstract and check ext
 
         printf("%s\n", ep->d_name);
     }
