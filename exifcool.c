@@ -3,15 +3,14 @@
 
 int main(int argc, char *argv[])
 {
-    if (2 != argc) {
+    if (argc != 2) {
         printf("usage: %s <dir>\n", argv[0]);
         return 1;
     }
 
     DIR *dp;
 
-    dp = opendir(argv[1]);
-    if (NULL == dp) {
+    if (!(dp = opendir(argv[1]))) {
         printf("couldn't open directory %s\n", argv[1]); // TODO: perror?
         return 1;
     }
