@@ -13,7 +13,7 @@
 
 /* util */
 
-int ec_file_filter(const struct dirent *ep, const char *ext)
+static int ec_file_filter(const struct dirent *ep, const char *ext)
 {
     if (!ep || !ext) return 0;
 
@@ -27,7 +27,7 @@ int ec_file_filter(const struct dirent *ep, const char *ext)
 
 /* exif */
 
-void ec_exif_print_date(const ExifData *ed)
+static void ec_exif_print_date(const ExifData *ed)
 {
     if (!ed) return;
 
@@ -42,7 +42,7 @@ void ec_exif_print_date(const ExifData *ed)
     printf("%s\n", buf);
 }
 
-void ec_exif_print(const struct dirent *ep)
+static void ec_exif_print(const struct dirent *ep)
 {
     if (!ep) return;
 
