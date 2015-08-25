@@ -6,14 +6,14 @@
 
 /* macros */
 
-#define EXIF_IFD EXIF_IFD_0
-#define EXIF_TAG EXIF_TAG_DATE_TIME
+#define EC_EXIF_IFD EXIF_IFD_0
+#define EC_EXIF_TAG EXIF_TAG_DATE_TIME
 
-#define EXIF_TAG_BYTES 20 // per spec for datetime tags
+#define EC_EXIF_TAG_BYTES 20 // per exif spec for datetime tags
 
 /* util */
 
-int _ec_file_filter(const struct dirent *ep, const char *ext)
+int ec_file_filter(const struct dirent *ep, const char *ext)
 {
     if (!ep || !ext) return 0;
 
@@ -27,35 +27,35 @@ int _ec_file_filter(const struct dirent *ep, const char *ext)
 
 /* exif */
 
-void _ec_exif_print_date(const ExifData *ed)
+void ec_exif_print_date(const ExifData *ed)
 {
     if (!ed) return;
 
-    ExifEntry *entry = exif_content_get_entry(ed->ifd[EXIF_IFD], EXIF_TAG);
-    if (!entry) return;
+    ExifEntry *ent = exif_content_get_entry(ed->ifd[EC_EXIF_IFD], EC_EXIF_TAG);
+    if (!ent) return;
 
-    char buf[EXIF_TAG_BYTES];
-    exif_entry_get_value(entry, buf, sizeof(buf));
+    char buf[EC_EXIF_TAG_BYTES];
 
-    if (*buf) {
-        printf("%s: %s\n", exif_tag_get_name_in_ifd(EXIF_TAG, EXIF_IFD), buf);
-    }
+    exif_entry_get_value(ent, buf, sizeof(buf));
+    if (!buf) return;
+
+    printf("%s\n", buf);
 }
 
-void _ec_exif_print(const struct dirent *ep)
+void ec_exif_print(const struct dirent *ep)
 {
     if (!ep) return;
 
     ExifData *ed;
 
-    ed = exif_data_new_from_file(ep->d_name); // FIXME: need to concat full path
+    ed = exif_data_new_from_file(ep->d_name); // FIXME: need full file path
     if (!ed) {
-        printf("couldn't get exif data from file %s\n", ep->d_name); // TODO: perror?
+        printf("couldn't get data from file %s\n", ep->d_name); // TODO: perror?
         return;
     }
 
     printf("%s => ", ep->d_name);
-    _ec_exif_print_date(ed);
+    ec_exif_print_date(ed);
 
     exif_data_unref(ed);
 }
@@ -73,15 +73,15 @@ int main(int argc, char *argv[])
 
     dp = opendir(argv[1]);
     if (!dp) {
-        printf("couldn't open directory %s\n", argv[1]); // TODO: perror?
+        printf("couldn't open dir %s\n", argv[1]); // TODO: perror?
         return 1;
     }
 
     struct dirent *ep;
     while ((ep = readdir(dp))) {
-        if (!_ec_file_filter(ep, argv[2])) continue;
+        if (!ec_file_filter(ep, argv[2])) continue;
 
-        _ec_exif_print(ep);
+        ec_exif_print(ep);
     }
 
     closedir(dp);
