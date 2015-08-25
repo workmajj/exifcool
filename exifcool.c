@@ -4,10 +4,12 @@
 
 #include <libexif/exif-data.h>
 
+/* macros */
+
 #define EXIF_IFD EXIF_IFD_0
 #define EXIF_TAG EXIF_TAG_DATE_TIME
 
-#define EXIF_BUF_BYTES 20 // per spec for datetime tags
+#define EXIF_TAG_BYTES 20 // per spec for datetime tags
 
 /* util */
 
@@ -32,7 +34,7 @@ void _ec_exif_print_date(const ExifData *ed)
     ExifEntry *entry = exif_content_get_entry(ed->ifd[EXIF_IFD], EXIF_TAG);
     if (!entry) return;
 
-    char buf[EXIF_BUF_BYTES];
+    char buf[EXIF_TAG_BYTES];
     exif_entry_get_value(entry, buf, sizeof(buf));
 
     if (*buf) {
@@ -46,12 +48,13 @@ void _ec_exif_print(const struct dirent *ep)
 
     ExifData *ed;
 
-    ed = exif_data_new_from_file(ep->d_name);
+    ed = exif_data_new_from_file(ep->d_name); // FIXME: need to concat full path
     if (!ed) {
         printf("couldn't get exif data from file %s\n", ep->d_name); // TODO: perror?
         return;
     }
 
+    printf("%s => ", ep->d_name);
     _ec_exif_print_date(ed);
 
     exif_data_unref(ed);
