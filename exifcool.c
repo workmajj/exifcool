@@ -4,6 +4,13 @@
 
 #include <libexif/exif-data.h>
 
+#define EXIF_IFD EXIF_IFD_0
+#define EXIF_TAG EXIF_TAG_DATE_TIME
+
+#define EXIF_BUF_BYTES 20 // per spec for datetime tags
+
+/* util */
+
 int _ec_file_filter(const struct dirent *ep, const char *ext)
 {
     if (!ep || !ext) return 0;
@@ -16,20 +23,20 @@ int _ec_file_filter(const struct dirent *ep, const char *ext)
     return (strncmp(ep->d_name + ep->d_namlen - lenext, ext, lenext) == 0);
 }
 
+/* exif */
+
 void _ec_exif_print_date(const ExifData *ed)
 {
     if (!ed) return;
 
-    ExifEntry *entry = exif_content_get_entry(ed->ifd[EXIF_IFD_0],
-        EXIF_TAG_DATE_TIME);
+    ExifEntry *entry = exif_content_get_entry(ed->ifd[EXIF_IFD], EXIF_TAG);
     if (!entry) return;
 
-    char buf[1024];
+    char buf[EXIF_BUF_BYTES];
     exif_entry_get_value(entry, buf, sizeof(buf));
 
     if (*buf) {
-        printf("%s: %s\n", exif_tag_get_name_in_ifd(EXIF_TAG_DATE_TIME,
-            EXIF_IFD_0), buf);
+        printf("%s: %s\n", exif_tag_get_name_in_ifd(EXIF_TAG, EXIF_IFD), buf);
     }
 }
 
@@ -49,6 +56,8 @@ void _ec_exif_print(const struct dirent *ep)
 
     exif_data_unref(ed);
 }
+
+/* main */
 
 int main(int argc, char *argv[])
 {
