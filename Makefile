@@ -1,4 +1,4 @@
-NAME = exifcool
+NAME=exifcool
 
 CC=clang
 CFLAGS=-Wall -g
