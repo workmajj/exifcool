@@ -12,7 +12,7 @@
 
 #define EC_EXIF_TAG_BYTES 20 // per exif spec for datetime tags
 
-/* util */
+/* file */
 
 static int ec_file_filter(const struct dirent *ep, const char *ext)
 {
@@ -20,7 +20,7 @@ static int ec_file_filter(const struct dirent *ep, const char *ext)
 
     if (ep->d_type != DT_REG) return 0; // not a regular file
 
-    int lenext = strlen(ext); // FIXME: strnlen?
+    int lenext = strlen(ext);
     if (lenext > ep->d_namlen) return 0;
 
     return (strncmp(ep->d_name + ep->d_namlen - lenext, ext, lenext) == 0);
@@ -74,7 +74,7 @@ int main(int argc, char *argv[])
 
     dp = opendir(argv[1]);
     if (!dp) {
-        printf("couldn't open dir %s\n", argv[1]); // TODO: perror?
+        printf("couldn't open dir %s\n", argv[1]);
         return 1;
     }
 
