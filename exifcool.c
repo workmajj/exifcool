@@ -1,3 +1,4 @@
+#include <assert.h>
 #include <stdio.h>
 #include <dirent.h>
 #include <string.h>
@@ -15,7 +16,7 @@
 
 static int ec_file_filter(const struct dirent *ep, const char *ext)
 {
-    if (!ep || !ext) return 0;
+    assert(ep != NULL && ext != NULL);
 
     if (ep->d_type != DT_REG) return 0; // not a regular file
 
@@ -29,28 +30,28 @@ static int ec_file_filter(const struct dirent *ep, const char *ext)
 
 static void ec_exif_print_date(const ExifData *ed)
 {
-    if (!ed) return;
+    assert(ed != NULL);
 
     ExifEntry *ent = exif_content_get_entry(ed->ifd[EC_EXIF_IFD], EC_EXIF_TAG);
-    if (!ent) return;
+    assert(ent != NULL);
 
     char buf[EC_EXIF_TAG_BYTES];
 
     exif_entry_get_value(ent, buf, sizeof(buf));
-    if (!buf) return;
+    assert(buf != NULL);
 
     printf("%s\n", buf);
 }
 
 static void ec_exif_print(const struct dirent *ep)
 {
-    if (!ep) return;
+    assert(ep != NULL);
 
     ExifData *ed;
 
     ed = exif_data_new_from_file(ep->d_name); // FIXME: need full file path
     if (!ed) {
-        printf("couldn't get data from file %s\n", ep->d_name); // TODO: perror?
+        printf("couldn't get exif data from %s\n", ep->d_name);
         return;
     }
 
@@ -85,6 +86,5 @@ int main(int argc, char *argv[])
     }
 
     closedir(dp);
-
     return 0;
 }
