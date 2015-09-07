@@ -4,33 +4,32 @@
 
 #include "trie.h"
 
-// TODO: specify storage class for funcs
+#define DT_SIZE 10 // array size for digits 0-9
 
 /* DigitTrie */
 
 // all keys (digit_str) are strings of digits (e.g., "20140830143607")
+// returns 0 (rather than erroring) when getting keys not yet set
 // specify fixed string length at init time (e.g., dt_init(14))
-// only one instance per program because of global dt_length state
+// only one instance because of global dt_length state
 
-#define DT_SIZE 10 // array size for digits 0-9
+static size_t dt_length = 0; // uninitialized value
 
 struct DigitTrieNode {
     struct DigitTrieNode *children[DT_SIZE];
     size_t count;
 };
 
-size_t dt_length = 0; // uninitialized value
-
 /* util */
 
-int dt_ctoi(const char *c)
+static int dt_ctoi(const char *c)
 {
     char a[2] = {c[0], '\0'};
 
     return atoi(a);
 }
 
-dt_node_t *dt_alloc()
+static dt_node_t *dt_alloc()
 {
     dt_node_t *n = malloc(sizeof(dt_node_t));
     assert(n != NULL);
@@ -42,7 +41,7 @@ dt_node_t *dt_alloc()
     return n;
 }
 
-void dt_free(dt_node_t *n)
+static void dt_free(dt_node_t *n)
 {
     assert(n != NULL);
 
@@ -55,7 +54,7 @@ void dt_free(dt_node_t *n)
 
 /* main */
 
-dt_node_t *dt_init(const size_t length)
+extern dt_node_t *dt_init(const size_t length)
 {
     assert(length > 0 && length < SIZE_MAX);
 
@@ -63,7 +62,8 @@ dt_node_t *dt_init(const size_t length)
 
     return dt_alloc();
 }
-void dt_destroy(dt_node_t *root)
+
+extern void dt_destroy(dt_node_t *root)
 {
     assert(dt_length > 0); // init-ed
 
@@ -72,7 +72,7 @@ void dt_destroy(dt_node_t *root)
     dt_free(root);
 }
 
-void dt_set(dt_node_t *root, const char *digit_str, const size_t count)
+extern void dt_set(dt_node_t *root, const char *digit_str, const size_t count)
 {
     assert(dt_length > 0); // init-ed
 
@@ -96,7 +96,7 @@ void dt_set(dt_node_t *root, const char *digit_str, const size_t count)
     curr->count = count;
 }
 
-size_t dt_get(dt_node_t *root, const char *digit_str)
+extern size_t dt_get(dt_node_t *root, const char *digit_str)
 {
     assert(dt_length > 0); // init-ed
 
