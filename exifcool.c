@@ -7,7 +7,7 @@
 
 #include "trie.h"
 
-/* macros */
+#define EC_TRIE_STR_LEN 14 // YYYYMMDDHHMMSS
 
 #define EC_EXIF_IFD EXIF_IFD_0
 #define EC_EXIF_TAG EXIF_TAG_DATE_TIME
@@ -80,12 +80,16 @@ int main(int argc, char *argv[])
         return 1;
     }
 
+    dt_node_t *trie = dt_init(EC_TRIE_STR_LEN);
+
     struct dirent *ep;
     while ((ep = readdir(dp))) {
         if (!ec_file_filter(ep, argv[2])) continue;
 
         ec_exif_print(ep);
     }
+
+    dt_destroy(trie);
 
     closedir(dp);
     return 0;

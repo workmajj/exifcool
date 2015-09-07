@@ -1,6 +1,8 @@
 #ifndef TRIE_H
 #define TRIE_H
 
+/* DigitTrie */
+
 struct DigitTrieNode;
 typedef struct DigitTrieNode dt_node_t;
 

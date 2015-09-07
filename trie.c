@@ -34,9 +34,7 @@ static dt_node_t *dt_alloc()
     dt_node_t *n = malloc(sizeof(dt_node_t));
     assert(n != NULL);
 
-    for (size_t i = 0; i < DT_SIZE; i++) {
-        n->children[i] = NULL;
-    }
+    for (size_t i = 0; i < DT_SIZE; i++) n->children[i] = NULL;
 
     return n;
 }
