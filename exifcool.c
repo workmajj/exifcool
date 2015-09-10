@@ -8,6 +8,8 @@
 
 #include "trie.h"
 
+/* const */
+
 #define EC_TRIE_STR_LEN 14 // for strings like "YYYYMMDDHHMMSS"
 
 #define EC_EXIF_IFD EXIF_IFD_0
@@ -31,23 +33,26 @@ static size_t ec_file_filter(const struct dirent *ep, const char *ext)
     return (strncmp(ep->d_name + ep->d_namlen - lenext, ext, lenext) == 0);
 }
 
-static void ec_buf_filter_digits(char *buf, const size_t size, char **ptrstr)
+static void ec_buf_filter_digits(char *buf, const size_t size, char **strptr)
 {
     assert(buf != NULL && strnlen(buf, size) < size);
-    assert(*ptrstr != NULL && ptrstr != NULL);
+    assert(*strptr != NULL && strptr != NULL);
 
     char *str = malloc(size);
     assert(str != NULL);
 
     memset(str, 0, size);
 
-    char *tok;
+    size_t i, j = 0;
 
-    while ((tok = strsep(&buf, ": ")) != NULL) {
-        strlcat(str, tok, size);
+    for (i = 0; i < size; i++) {
+        if (buf[i] >= 48 && buf[i] <= 57) {
+            str[j] = buf[i];
+            j++;
+        }
     }
 
-    *ptrstr = str;
+    *strptr = str;
 }
 
 /* exif */
@@ -97,6 +102,7 @@ int main(int argc, char *argv[])
 {
     if (argc != 3) {
         printf("usage: %s <dir> <ext>\n", argv[0]);
+
         return 1;
     }
 
@@ -105,6 +111,7 @@ int main(int argc, char *argv[])
     dp = opendir(argv[1]);
     if (!dp) {
         printf("couldn't open dir %s\n", argv[1]);
+
         return 1;
     }
 
@@ -120,5 +127,6 @@ int main(int argc, char *argv[])
     // dt_destroy(trie);
 
     closedir(dp);
+
     return 0;
 }
