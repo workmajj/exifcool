@@ -7,22 +7,24 @@
 
 #include "trie.h"
 
-#define EC_TRIE_STR_LEN 14 // YYYYMMDDHHMMSS
+#define EC_TRIE_STR_LEN 14 // for strings like "YYYYMMDDHHMMSS"
 
 #define EC_EXIF_IFD EXIF_IFD_0
 #define EC_EXIF_TAG EXIF_TAG_DATE_TIME
 
-#define EC_EXIF_TAG_BYTES 20 // per exif spec for datetime tags
+#define EC_EXIF_TAG_BYTES 20 // per exif spec for datetime tags (includes '\0')
 
-/* file */
+/* util */
 
-static int ec_file_filter(const struct dirent *ep, const char *ext)
+static size_t ec_file_filter(const struct dirent *ep, const char *ext)
 {
+    // TODO: factor out dirent to generalize (or move to exif section)
+
     assert(ep != NULL && ext != NULL);
 
     if (ep->d_type != DT_REG) return 0; // not a regular file
 
-    int lenext = strlen(ext);
+    size_t lenext = strlen(ext);
     if (lenext > ep->d_namlen) return 0;
 
     return (strncmp(ep->d_name + ep->d_namlen - lenext, ext, lenext) == 0);
@@ -42,7 +44,7 @@ static void ec_exif_print_date(const ExifData *ed)
     exif_entry_get_value(ent, buf, sizeof(buf));
     assert(buf != NULL);
 
-    printf("%s\n", buf);
+    printf("%s", buf);
 }
 
 static void ec_exif_print(const struct dirent *ep)
@@ -59,6 +61,7 @@ static void ec_exif_print(const struct dirent *ep)
 
     printf("%s => ", ep->d_name);
     ec_exif_print_date(ed);
+    printf("\n");
 
     exif_data_unref(ed);
 }
@@ -80,7 +83,7 @@ int main(int argc, char *argv[])
         return 1;
     }
 
-    dt_node_t *trie = dt_init(EC_TRIE_STR_LEN);
+    // dt_node_t *trie = dt_init(EC_TRIE_STR_LEN);
 
     struct dirent *ep;
     while ((ep = readdir(dp))) {
@@ -89,7 +92,7 @@ int main(int argc, char *argv[])
         ec_exif_print(ep);
     }
 
-    dt_destroy(trie);
+    // dt_destroy(trie);
 
     closedir(dp);
     return 0;
