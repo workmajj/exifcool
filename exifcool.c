@@ -1,6 +1,7 @@
 #include <assert.h>
 #include <stdio.h>
 #include <dirent.h>
+#include <stdlib.h>
 #include <string.h>
 
 #include <libexif/exif-data.h>
@@ -30,6 +31,25 @@ static size_t ec_file_filter(const struct dirent *ep, const char *ext)
     return (strncmp(ep->d_name + ep->d_namlen - lenext, ext, lenext) == 0);
 }
 
+static void ec_buf_filter_digits(char *buf, const size_t size, char **ptrstr)
+{
+    assert(buf != NULL && strnlen(buf, size) < size);
+    assert(*ptrstr != NULL && ptrstr != NULL);
+
+    char *str = malloc(size);
+    assert(str != NULL);
+
+    memset(str, 0, size);
+
+    char *tok;
+
+    while ((tok = strsep(&buf, ": ")) != NULL) {
+        strlcat(str, tok, size);
+    }
+
+    *ptrstr = str;
+}
+
 /* exif */
 
 static void ec_exif_print_date(const ExifData *ed)
@@ -40,11 +60,16 @@ static void ec_exif_print_date(const ExifData *ed)
     assert(ent != NULL);
 
     char buf[EC_EXIF_TAG_BYTES];
-
     exif_entry_get_value(ent, buf, sizeof(buf));
     assert(buf != NULL);
 
-    printf("%s", buf);
+    char *str;
+    ec_buf_filter_digits(buf, sizeof(buf), &str);
+    assert(str != NULL);
+
+    printf("%s", str);
+
+    free(str);
 }
 
 static void ec_exif_print(const struct dirent *ep)
