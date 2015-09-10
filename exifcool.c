@@ -17,6 +17,9 @@
 
 #define EC_EXIF_TAG_BYTES 20 // per exif spec for datetime tags (includes '\0')
 
+#define EC_ASCII_0 48
+#define EC_ASCII_9 57
+
 /* util */
 
 static size_t ec_file_filter(const struct dirent *ep, const char *ext)
@@ -40,13 +43,12 @@ static void ec_buf_filter_digits(char *buf, const size_t size, char **strptr)
 
     char *str = malloc(size);
     assert(str != NULL);
-
     memset(str, 0, size);
 
     size_t i, j = 0;
 
     for (i = 0; i < size; i++) {
-        if (buf[i] >= 48 && buf[i] <= 57) {
+        if (buf[i] >= EC_ASCII_0 && buf[i] <= EC_ASCII_9) {
             str[j] = buf[i];
             j++;
         }
