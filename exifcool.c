@@ -8,14 +8,11 @@
 
 #include "trie.h"
 
-/* const */
-
-#define EC_TRIE_STR_LEN 14 // for strings like "YYYYMMDDHHMMSS"
+// #define EC_TRIE_STR_LEN 14 // for strings like "YYYYMMDDHHMMSS"
 
 #define EC_EXIF_IFD EXIF_IFD_0
 #define EC_EXIF_TAG EXIF_TAG_DATE_TIME
-
-#define EC_EXIF_TAG_BYTES 20 // per exif spec for datetime tags (includes '\0')
+#define EC_EXIF_TAG_BYTES 20 // per exif spec for datetime tags
 
 #define EC_ASCII_0 48
 #define EC_ASCII_9 57
@@ -43,6 +40,7 @@ static void ec_buf_filter_digits(char *buf, const size_t size, char **strptr)
 
     char *str = malloc(size);
     assert(str != NULL);
+
     memset(str, 0, size);
 
     size_t i, j = 0;
@@ -83,9 +81,7 @@ static void ec_exif_print(const struct dirent *ep)
 {
     assert(ep != NULL);
 
-    ExifData *ed;
-
-    ed = exif_data_new_from_file(ep->d_name); // FIXME: need full file path
+    ExifData *ed = exif_data_new_from_file(ep->d_name); // FIXME: need full path
     if (!ed) {
         printf("couldn't get exif data from %s\n", ep->d_name);
         return;
@@ -108,9 +104,7 @@ int main(int argc, char *argv[])
         return 1;
     }
 
-    DIR *dp;
-
-    dp = opendir(argv[1]);
+    DIR *dp = opendir(argv[1]);
     if (!dp) {
         printf("couldn't open dir %s\n", argv[1]);
 

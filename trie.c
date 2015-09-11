@@ -6,12 +6,9 @@
 
 #define DT_SIZE 10 // array size for digits 0-9
 
-/* DigitTrie */
-
 // all keys (digit_str) are strings of digits (e.g., "20140830143607")
-// returns 0 (rather than erroring) when getting keys not yet set
-// specify fixed string length at init time (e.g., dt_init(14))
-// only one instance because of global dt_length state
+// specify fixed string length at init (doesn't include '\0' byte)
+// only one instance allowed because of global dt_length
 
 static size_t dt_length = 0; // uninitialized value
 
@@ -24,7 +21,7 @@ struct DigitTrieNode {
 
 static int dt_ctoi(const char *c)
 {
-    char a[2] = {c[0], '\0'};
+    char a[2] = {c[0], 0};
 
     return atoi(a);
 }
@@ -35,6 +32,8 @@ static dt_node_t *dt_alloc()
     assert(n != NULL);
 
     for (size_t i = 0; i < DT_SIZE; i++) n->children[i] = NULL;
+
+    n->count = 0;
 
     return n;
 }
@@ -70,28 +69,29 @@ extern void dt_destroy(dt_node_t *root)
     dt_free(root);
 }
 
-extern void dt_set(dt_node_t *root, const char *digit_str, const size_t count)
+// TODO: make dt_inc and dt_get wrappers around one func
+
+extern size_t dt_inc(dt_node_t *root, const char *digit_str)
 {
     assert(dt_length > 0); // init-ed
 
     assert(root != NULL);
     assert(digit_str != NULL);
-    assert(count < SIZE_MAX);
 
     size_t len = strnlen(digit_str, dt_length + 1);
     assert(len == dt_length);
 
-    dt_node_t *curr = root;
+    dt_node_t *cur = root;
 
     for (size_t i = 0; i < len; i++) {
         int idx = dt_ctoi(&digit_str[i]);
 
-        if (!curr->children[idx]) curr->children[idx] = dt_alloc();
+        if (!cur->children[idx]) cur->children[idx] = dt_alloc();
 
-        curr = curr->children[idx];
+        cur = cur->children[idx];
     }
 
-    curr->count = count;
+    return cur->count++; // increment and return
 }
 
 extern size_t dt_get(dt_node_t *root, const char *digit_str)
