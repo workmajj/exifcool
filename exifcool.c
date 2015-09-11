@@ -40,7 +40,6 @@ static void ec_buf_filter_digits(char *buf, const size_t size, char **strptr)
 
     char *str = malloc(size);
     assert(str != NULL);
-
     memset(str, 0, size);
 
     size_t i, j = 0;
@@ -62,7 +61,10 @@ static void ec_exif_print_date(const ExifData *ed)
     assert(ed != NULL);
 
     ExifEntry *ent = exif_content_get_entry(ed->ifd[EC_EXIF_IFD], EC_EXIF_TAG);
-    assert(ent != NULL);
+    if (!ent) {
+        printf("[n/a]");
+        return;
+    }
 
     char buf[EC_EXIF_TAG_BYTES];
     exif_entry_get_value(ent, buf, sizeof(buf));
