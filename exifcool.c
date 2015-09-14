@@ -123,6 +123,7 @@ static size_t ec_dir_scan(const char *dir_name, const char *file_ext,
 
     if (count_file == 0) {
         closedir(dirp);
+
         printf("no files with ext %s in dir %s\n", file_ext, dir_name);
         exit(0);
     }
@@ -148,12 +149,15 @@ static size_t ec_dir_scan(const char *dir_name, const char *file_ext,
     closedir(dirp);
 
     if (count_check != count_file) {
+        for (size_t i = 0; i < count_file; i++) free(files[i].name);
         free(files);
+
         printf("dir %s has been modified\n", dir_name);
         exit(1);
     }
 
     *files_ptr = files;
+
     return count_file;
 }
 
@@ -170,9 +174,9 @@ int main(int argc, char *argv[])
     // dt_node_t *trie = dt_init(EC_TRIE_STR_LEN);
 
     ec_file_t *files;
-    size_t file_count = ec_dir_scan(argv[1], argv[2], &files);
+    size_t count = ec_dir_scan(argv[1], argv[2], &files);
 
-    for (size_t i = 0; i < file_count; i++) {
+    for (size_t i = 0; i < count; i++) {
         ec_exif_print(files[i].name);
 
         free(files[i].name);
