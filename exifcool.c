@@ -6,16 +6,20 @@
 
 #include <libexif/exif-data.h>
 
-#include "trie.h"
+// #include "trie.h"
 
-// #define EC_TRIE_STR_LEN 14 // for strings like "YYYYMMDDHHMMSS"
+#define EC_ASCII_0 48
+#define EC_ASCII_9 57
 
 #define EC_EXIF_IFD EXIF_IFD_0
 #define EC_EXIF_TAG EXIF_TAG_DATE_TIME
 #define EC_EXIF_TAG_BYTES 20 // per exif spec for datetime tags
 
-#define EC_ASCII_0 48
-#define EC_ASCII_9 57
+// #define EC_TRIE_STR_LEN 14 // for strings like "YYYYMMDDHHMMSS"
+
+typedef struct ECFile {
+    char *name;
+} ec_file_t;
 
 /* util */
 
@@ -65,31 +69,6 @@ static void ec_exif_print_date(const ExifData *ed)
     free(str);
 }
 
-/*
-static void ec_exif_print(const struct dirent *ep)
-{
-    assert(ep != NULL);
-
-    ExifData *ed = exif_data_new_from_file(ep->d_name); // FIXME: need full path
-    if (!ed) {
-        printf("couldn't get exif data from %s\n", ep->d_name);
-        return;
-    }
-
-    printf("%s => ", ep->d_name);
-    ec_exif_print_date(ed);
-    printf("\n");
-
-    exif_data_unref(ed);
-}
-*/
-
-/* main */
-
-
-
-
-
 static void ec_exif_print(const char *file_name)
 {
     assert(file_name != NULL);
@@ -107,7 +86,9 @@ static void ec_exif_print(const char *file_name)
     exif_data_unref(ed);
 }
 
-static size_t ec_dir_filter(const struct dirent *ep, const char *file_ext)
+/* dir */
+
+static size_t ec_dir_file_filter(const struct dirent *ep, const char *file_ext)
 {
     assert(ep != NULL && file_ext != NULL);
 
@@ -119,36 +100,8 @@ static size_t ec_dir_filter(const struct dirent *ep, const char *file_ext)
     return (strncmp(ep->d_name + ep->d_namlen - lenext, file_ext, lenext) == 0);
 }
 
-/*
-static void ec_dir_scan(DIR *dirp, const char *file_ext, ec_file_t **file_list)
-{
-    struct dirent *ep;
-    // struct ec_file_t *fp;
-
-    while ((ep = readdir(dirp))) {
-        if (!ec_dir_filter(ep, file_ext)) continue;
-
-        ec_exif_print(ep->d_name);
-    }
-}
-*/
-
-
-
-
-
-
-#ifdef _DARWIN_FEATURE_64_BIT_INODE
-#define EC_FILE_NAME_BYTES 1024
-#else
-#define EC_FILE_NAME_BYTES 256
-#endif // _DARWIN_FEATURE_64_BIT_INODE
-
-typedef struct ECFile {
-    char name[EC_FILE_NAME_BYTES]; // TODO: make size dynamic
-} ec_file_t;
-
-static size_t ec_dir_scan(const char *dir_name, const char *file_ext, ec_file_t **files_ptr)
+static size_t ec_dir_scan(const char *dir_name, const char *file_ext,
+    ec_file_t **files_ptr)
 {
     assert(dir_name != NULL);
     assert(file_ext != NULL);
@@ -163,9 +116,7 @@ static size_t ec_dir_scan(const char *dir_name, const char *file_ext, ec_file_t 
     size_t count_file = 0;
 
     while ((ep = readdir(dirp))) {
-        if (!ec_dir_filter(ep, file_ext)) continue;
-
-        count_file++;
+        if (ec_dir_file_filter(ep, file_ext)) count_file++;
     }
 
     rewinddir(dirp);
@@ -183,11 +134,12 @@ static size_t ec_dir_scan(const char *dir_name, const char *file_ext, ec_file_t 
     size_t count_check = 0;
 
     while ((ep = readdir(dirp))) {
-        if (!ec_dir_filter(ep, file_ext)) continue;
+        if (!ec_dir_file_filter(ep, file_ext)) continue;
 
-        // TODO: make size dynamic
-        memset(filep->name, 0, EC_FILE_NAME_BYTES);
-        strlcpy(filep->name, ep->d_name, EC_FILE_NAME_BYTES);
+        filep->name = malloc(ep->d_namlen * sizeof(char));
+        assert(filep->name != NULL);
+
+        strlcpy(filep->name, ep->d_name, ep->d_namlen + 1);
 
         filep++;
         count_check++;
@@ -202,77 +154,33 @@ static size_t ec_dir_scan(const char *dir_name, const char *file_ext, ec_file_t 
     }
 
     *files_ptr = files;
-
     return count_file;
 }
+
+/* main */
 
 int main(int argc, char *argv[])
 {
     if (argc != 3) {
         printf("usage: %s <dir> <file_ext>\n", argv[0]);
-        return 1;
-    }
-
-    ec_file_t *files;
-    size_t file_count = ec_dir_scan(argv[1], argv[2], &files);
-    assert(files != NULL);
-
-    for (size_t i = 0; i < file_count; i++) {
-        printf("%s\n", files[i].name);
-    }
-
-    free(files);
-
-    /*
-    DIR *dirp = opendir(argv[1]);
-    if (!dirp) {
-        printf("couldn't open dir %s\n", argv[1]);
-        return 1;
-    }
-
-    ec_file_t *file_list;
-    ec_dir_scan(dirp, argv[2], &file_list);
-    free(file_list);
-
-    closedir(dirp);
-    */
-
-    return 0;
-}
-
-
-
-
-
-/*
-int main(int argc, char *argv[])
-{
-    if (argc != 3) {
-        printf("usage: %s <dir> <ext>\n", argv[0]);
-
-        return 1;
-    }
-
-    DIR *dp = opendir(argv[1]);
-    if (!dp) {
-        printf("couldn't open dir %s\n", argv[1]);
 
         return 1;
     }
 
     // dt_node_t *trie = dt_init(EC_TRIE_STR_LEN);
 
-    struct dirent *ep;
-    while ((ep = readdir(dp))) {
-        if (!ec_file_filter(ep, argv[2])) continue;
+    ec_file_t *files;
+    size_t file_count = ec_dir_scan(argv[1], argv[2], &files);
 
-        ec_exif_print(ep);
+    for (size_t i = 0; i < file_count; i++) {
+        ec_exif_print(files[i].name);
+
+        free(files[i].name);
     }
+
+    free(files);
 
     // dt_destroy(trie);
 
-    closedir(dp);
-
     return 0;
 }
-*/
