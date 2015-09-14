@@ -19,20 +19,6 @@
 
 /* util */
 
-static size_t ec_file_filter(const struct dirent *ep, const char *ext)
-{
-    // TODO: factor out dirent to generalize (or move to exif section)
-
-    assert(ep != NULL && ext != NULL);
-
-    if (ep->d_type != DT_REG) return 0; // not a regular file
-
-    size_t lenext = strlen(ext);
-    if (lenext > ep->d_namlen) return 0;
-
-    return (strncmp(ep->d_name + ep->d_namlen - lenext, ext, lenext) == 0);
-}
-
 static void ec_buf_filter_digits(char *buf, const size_t size, char **strptr)
 {
     assert(buf != NULL && strnlen(buf, size) < size);
@@ -79,6 +65,7 @@ static void ec_exif_print_date(const ExifData *ed)
     free(str);
 }
 
+/*
 static void ec_exif_print(const struct dirent *ep)
 {
     assert(ep != NULL);
@@ -95,9 +82,169 @@ static void ec_exif_print(const struct dirent *ep)
 
     exif_data_unref(ed);
 }
+*/
 
 /* main */
 
+
+
+
+
+static void ec_exif_print(const char *file_name)
+{
+    assert(file_name != NULL);
+
+    ExifData *ed = exif_data_new_from_file(file_name); // FIXME: need full path
+    if (!ed) {
+        printf("couldn't get exif data from %s\n", file_name);
+        return;
+    }
+
+    printf("%s => ", file_name);
+    ec_exif_print_date(ed);
+    printf("\n");
+
+    exif_data_unref(ed);
+}
+
+static size_t ec_dir_filter(const struct dirent *ep, const char *file_ext)
+{
+    assert(ep != NULL && file_ext != NULL);
+
+    if (ep->d_type != DT_REG) return 0; // ignore non-regular files
+
+    size_t lenext = strlen(file_ext);
+    if (lenext > ep->d_namlen) return 0;
+
+    return (strncmp(ep->d_name + ep->d_namlen - lenext, file_ext, lenext) == 0);
+}
+
+/*
+static void ec_dir_scan(DIR *dirp, const char *file_ext, ec_file_t **file_list)
+{
+    struct dirent *ep;
+    // struct ec_file_t *fp;
+
+    while ((ep = readdir(dirp))) {
+        if (!ec_dir_filter(ep, file_ext)) continue;
+
+        ec_exif_print(ep->d_name);
+    }
+}
+*/
+
+
+
+
+
+
+#ifdef _DARWIN_FEATURE_64_BIT_INODE
+#define EC_FILE_NAME_BYTES 1024
+#else
+#define EC_FILE_NAME_BYTES 256
+#endif // _DARWIN_FEATURE_64_BIT_INODE
+
+typedef struct ECFile {
+    char name[EC_FILE_NAME_BYTES]; // TODO: make size dynamic
+} ec_file_t;
+
+static size_t ec_dir_scan(const char *dir_name, const char *file_ext, ec_file_t **files_ptr)
+{
+    assert(dir_name != NULL);
+    assert(file_ext != NULL);
+
+    DIR *dirp = opendir(dir_name);
+    if (!dirp) {
+        printf("couldn't open dir %s\n", dir_name);
+        exit(1);
+    }
+
+    struct dirent *ep;
+    size_t count_file = 0;
+
+    while ((ep = readdir(dirp))) {
+        if (!ec_dir_filter(ep, file_ext)) continue;
+
+        count_file++;
+    }
+
+    rewinddir(dirp);
+
+    if (count_file == 0) {
+        closedir(dirp);
+        printf("no files with ext %s in dir %s\n", file_ext, dir_name);
+        exit(0);
+    }
+
+    ec_file_t *files = malloc(count_file * sizeof(ec_file_t));
+    assert(files != NULL);
+
+    ec_file_t *filep = files;
+    size_t count_check = 0;
+
+    while ((ep = readdir(dirp))) {
+        if (!ec_dir_filter(ep, file_ext)) continue;
+
+        // TODO: make size dynamic
+        memset(filep->name, 0, EC_FILE_NAME_BYTES);
+        strlcpy(filep->name, ep->d_name, EC_FILE_NAME_BYTES);
+
+        filep++;
+        count_check++;
+    }
+
+    closedir(dirp);
+
+    if (count_check != count_file) {
+        free(files);
+        printf("dir %s has been modified\n", dir_name);
+        exit(1);
+    }
+
+    *files_ptr = files;
+
+    return count_file;
+}
+
+int main(int argc, char *argv[])
+{
+    if (argc != 3) {
+        printf("usage: %s <dir> <file_ext>\n", argv[0]);
+        return 1;
+    }
+
+    ec_file_t *files;
+    size_t file_count = ec_dir_scan(argv[1], argv[2], &files);
+    assert(files != NULL);
+
+    for (size_t i = 0; i < file_count; i++) {
+        printf("%s\n", files[i].name);
+    }
+
+    free(files);
+
+    /*
+    DIR *dirp = opendir(argv[1]);
+    if (!dirp) {
+        printf("couldn't open dir %s\n", argv[1]);
+        return 1;
+    }
+
+    ec_file_t *file_list;
+    ec_dir_scan(dirp, argv[2], &file_list);
+    free(file_list);
+
+    closedir(dirp);
+    */
+
+    return 0;
+}
+
+
+
+
+
+/*
 int main(int argc, char *argv[])
 {
     if (argc != 3) {
@@ -128,3 +275,4 @@ int main(int argc, char *argv[])
 
     return 0;
 }
+*/
