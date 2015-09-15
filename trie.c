@@ -26,9 +26,9 @@ static int dt_ctoi(const char *c)
     return atoi(a);
 }
 
-static dt_node_t *dt_alloc()
+static DTNode *dt_alloc()
 {
-    dt_node_t *n = malloc(sizeof(dt_node_t));
+    DTNode *n = malloc(sizeof(DTNode));
     assert(n != NULL);
 
     for (size_t i = 0; i < DT_SIZE; i++) n->children[i] = NULL;
@@ -38,7 +38,7 @@ static dt_node_t *dt_alloc()
     return n;
 }
 
-static void dt_free(dt_node_t *n)
+static void dt_free(DTNode *n)
 {
     assert(n != NULL);
 
@@ -51,7 +51,7 @@ static void dt_free(dt_node_t *n)
 
 /* main */
 
-extern dt_node_t *dt_init(const size_t length)
+extern DTNode *dt_init(const size_t length)
 {
     assert(length > 0 && length < SIZE_MAX);
 
@@ -60,7 +60,7 @@ extern dt_node_t *dt_init(const size_t length)
     return dt_alloc();
 }
 
-extern void dt_destroy(dt_node_t *root)
+extern void dt_destroy(DTNode *root)
 {
     assert(dt_length > 0); // init-ed
 
@@ -69,9 +69,9 @@ extern void dt_destroy(dt_node_t *root)
     dt_free(root);
 }
 
-// TODO: make dt_inc and dt_get wrappers around one func
+// TODO: make dt_inc and dt_get wrappers around single func
 
-extern size_t dt_inc(dt_node_t *root, const char *digit_str)
+extern size_t dt_inc(DTNode *root, const char *digit_str)
 {
     assert(dt_length > 0); // init-ed
 
@@ -81,7 +81,7 @@ extern size_t dt_inc(dt_node_t *root, const char *digit_str)
     size_t len = strnlen(digit_str, dt_length + 1);
     assert(len == dt_length);
 
-    dt_node_t *cur = root;
+    DTNode *cur = root;
 
     for (size_t i = 0; i < len; i++) {
         int idx = dt_ctoi(&digit_str[i]);
@@ -94,7 +94,7 @@ extern size_t dt_inc(dt_node_t *root, const char *digit_str)
     return cur->count++; // increment and return
 }
 
-extern size_t dt_get(dt_node_t *root, const char *digit_str)
+extern size_t dt_get(DTNode *root, const char *digit_str)
 {
     assert(dt_length > 0); // init-ed
 
@@ -104,7 +104,7 @@ extern size_t dt_get(dt_node_t *root, const char *digit_str)
     size_t len = strnlen(digit_str, dt_length + 1);
     assert(len == dt_length);
 
-    dt_node_t *curr = root;
+    DTNode *curr = root;
 
     for (size_t i = 0; i < len; i++) {
         int idx = dt_ctoi(&digit_str[i]);

@@ -140,11 +140,12 @@ ECFile *ec_dir_list(const char *dir, const char *f_ext, const size_t f_count)
         exit(1);
     }
 
+    size_t chk_count = 0;
+
     ECFile *f_arr = malloc(f_count * sizeof(ECFile));
     assert(f_arr != NULL);
 
     ECFile *f_ptr = f_arr;
-    size_t chk_count = 0;
 
     struct dirent *ep;
     while ((ep = readdir(dirp))) {
@@ -181,7 +182,7 @@ int main(int argc, char *argv[])
         return 1;
     }
 
-    // dt_node_t *trie = dt_init(EC_TRIE_STR_LEN);
+    // DTNode *trie = dt_init(EC_TRIE_STR_LEN);
 
     size_t f_count = ec_dir_count(argv[1], argv[2]);
     ECFile *f_arr = ec_dir_list(argv[1], argv[2], f_count);
