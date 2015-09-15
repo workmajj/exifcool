@@ -17,42 +17,41 @@
 
 // #define EC_TRIE_STR_LEN 14 // like "YYYYMMDDHHMMSS"
 
-typedef struct ECFile {
+typedef struct ec_file {
     char *name;
-} ec_file_t;
+} ECFile;
 
 /* util */
 
-static void ec_buf_filter_digits(char *buf, const size_t size, char **strptr)
+void ec_buf_filter_digits(char *buf, const size_t size, char **str_ptr)
 {
-    assert(buf != NULL && strnlen(buf, size) < size);
-    assert(strptr != NULL);
+    assert(buf != NULL);
+    assert(strnlen(buf, size) < size);
+    assert(str_ptr != NULL);
 
     char *str = malloc(size);
     assert(str != NULL);
     memset(str, 0, size);
 
-    size_t i, j = 0;
-
-    for (i = 0; i < size; i++) {
+    for (size_t i = 0, j = 0; i < size; i++) {
         if (buf[i] >= EC_ASCII_0 && buf[i] <= EC_ASCII_9) {
             str[j] = buf[i];
             j++;
         }
     }
 
-    *strptr = str;
+    *str_ptr = str;
 }
 
 /* exif */
 
-static void ec_exif_print_date(const ExifData *ed)
+void ec_exif_print_date(const ExifData *ed)
 {
     assert(ed != NULL);
 
     ExifEntry *ent = exif_content_get_entry(ed->ifd[EC_EXIF_IFD], EC_EXIF_TAG);
     if (!ent) {
-        printf("[n/a]");
+        printf("n/a");
         return;
     }
 
@@ -69,17 +68,17 @@ static void ec_exif_print_date(const ExifData *ed)
     free(str);
 }
 
-static void ec_exif_print(const char *file_name)
+void ec_exif_print(const char *f_name)
 {
-    assert(file_name != NULL);
+    assert(f_name != NULL);
 
-    ExifData *ed = exif_data_new_from_file(file_name); // FIXME: need full path
+    ExifData *ed = exif_data_new_from_file(f_name); // FIXME: need full path
     if (!ed) {
-        printf("couldn't get exif data from %s\n", file_name);
+        printf("couldn't get exif data from %s\n", f_name);
         return;
     }
 
-    printf("%s => ", file_name);
+    printf("%s => ", f_name);
     ec_exif_print_date(ed);
     printf("\n");
 
@@ -88,7 +87,7 @@ static void ec_exif_print(const char *file_name)
 
 /* dir */
 
-static size_t ec_dir_filter(const struct dirent *ep, const char *f_ext)
+size_t ec_dir_filter(const struct dirent *ep, const char *f_ext)
 {
     assert(ep != NULL);
     assert(f_ext != NULL);
@@ -101,7 +100,7 @@ static size_t ec_dir_filter(const struct dirent *ep, const char *f_ext)
     return (strncmp(ep->d_name + ep->d_namlen - len_ext, f_ext, len_ext) == 0);
 }
 
-static size_t ec_dir_count(const char *dir, const char *f_ext)
+size_t ec_dir_count(const char *dir, const char *f_ext)
 {
     assert(dir != NULL);
     assert(f_ext != NULL);
@@ -129,8 +128,7 @@ static size_t ec_dir_count(const char *dir, const char *f_ext)
     return f_count;
 }
 
-static ec_file_t *ec_dir_list(const char *dir, const char *f_ext,
-    const size_t f_count)
+ECFile *ec_dir_list(const char *dir, const char *f_ext, const size_t f_count)
 {
     assert(dir != NULL);
     assert(f_ext != NULL);
@@ -142,10 +140,10 @@ static ec_file_t *ec_dir_list(const char *dir, const char *f_ext,
         exit(1);
     }
 
-    ec_file_t *f_arr = malloc(f_count * sizeof(ec_file_t));
+    ECFile *f_arr = malloc(f_count * sizeof(ECFile));
     assert(f_arr != NULL);
 
-    ec_file_t *f_ptr = f_arr;
+    ECFile *f_ptr = f_arr;
     size_t chk_count = 0;
 
     struct dirent *ep;
@@ -178,7 +176,7 @@ static ec_file_t *ec_dir_list(const char *dir, const char *f_ext,
 int main(int argc, char *argv[])
 {
     if (argc != 3) {
-        printf("usage: %s <dir> <file_ext>\n", argv[0]);
+        printf("usage: %s <dir_name> <file_ext>\n", argv[0]);
 
         return 1;
     }
@@ -186,7 +184,7 @@ int main(int argc, char *argv[])
     // dt_node_t *trie = dt_init(EC_TRIE_STR_LEN);
 
     size_t f_count = ec_dir_count(argv[1], argv[2]);
-    ec_file_t *f_arr = ec_dir_list(argv[1], argv[2], f_count);
+    ECFile *f_arr = ec_dir_list(argv[1], argv[2], f_count);
     assert (f_arr != NULL);
 
     for (size_t i = 0; i < f_count; i++) {
