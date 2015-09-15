@@ -17,12 +17,21 @@
 
 // #define EC_TRIE_STR_LEN 14 // like "YYYYMMDDHHMMSS"
 
+typedef struct ec_datetime {
+    uint16_t year;
+    uint8_t month;
+    uint8_t day;
+    uint8_t hour;
+    uint8_t minute;
+    uint8_t second;
+} ECDateTime;
+
 typedef struct ec_file {
     char *name;
+    struct ec_datetime dt;
 } ECFile;
 
-/* util */
-
+/*
 void ec_buf_filter_digits(char *buf, const size_t size, char **str_ptr)
 {
     assert(buf != NULL);
@@ -42,8 +51,6 @@ void ec_buf_filter_digits(char *buf, const size_t size, char **str_ptr)
 
     *str_ptr = str;
 }
-
-/* exif */
 
 void ec_exif_print_date(const ExifData *ed)
 {
@@ -84,8 +91,63 @@ void ec_exif_print(const char *f_name)
 
     exif_data_unref(ed);
 }
+*/
 
-/* dir */
+void ec_exif_extract(ECFile *f)
+{
+    assert(f != NULL);
+
+    ExifData *ed = exif_data_new_from_file(f->name); // FIXME: need full path
+    if (!ed) return; // FIXME
+
+    ExifEntry *ent = exif_content_get_entry(ed->ifd[EC_EXIF_IFD], EC_EXIF_TAG);
+    if (!ent) return; // FIXME
+
+    char buf[EC_EXIF_TAG_BYTES];
+    exif_entry_get_value(ent, buf, sizeof(buf));
+    assert(buf != NULL);
+
+    char *tok;
+    char *buf_ptr = buf;
+    size_t i = 0;
+
+    printf("buf: %s\n", buf);
+
+    while ((tok = strsep(&buf_ptr, ": "))) {
+        switch (i) {
+        case 0:
+            f->dt.year = atoi(tok);
+            break;
+        case 1:
+            f->dt.month = atoi(tok);
+            break;
+        case 2:
+            f->dt.day = atoi(tok);
+            break;
+        case 3:
+            f->dt.hour = atoi(tok);
+            break;
+        case 4:
+            f->dt.minute = atoi(tok);
+            break;
+        case 5:
+            f->dt.second = atoi(tok);
+            break;
+        default:
+            assert(0 && "not reached"); // malformed string
+        }
+
+        i++;
+    }
+
+    printf("dt.year: %d\n", f->dt.year);
+    printf("dt.month: %d\n", f->dt.month);
+    printf("dt.day: %d\n", f->dt.day);
+    printf("dt.hour: %d\n", f->dt.hour);
+    printf("dt.minute: %d\n", f->dt.minute);
+    printf("dt.second: %d\n", f->dt.second);
+    printf("\n");
+}
 
 size_t ec_dir_filter(const struct dirent *ep, const char *f_ext)
 {
@@ -140,10 +202,10 @@ ECFile *ec_dir_list(const char *dir, const char *f_ext, const size_t f_count)
         exit(1);
     }
 
-    size_t chk_count = 0;
-
     ECFile *f_arr = malloc(f_count * sizeof(ECFile));
     assert(f_arr != NULL);
+
+    size_t chk_count = 0;
 
     ECFile *f_ptr = f_arr;
 
@@ -172,8 +234,6 @@ ECFile *ec_dir_list(const char *dir, const char *f_ext, const size_t f_count)
     return f_arr;
 }
 
-/* main */
-
 int main(int argc, char *argv[])
 {
     if (argc != 3) {
@@ -189,7 +249,9 @@ int main(int argc, char *argv[])
     assert (f_arr != NULL);
 
     for (size_t i = 0; i < f_count; i++) {
-        ec_exif_print(f_arr[i].name);
+        // ec_exif_print(f_arr[i].name);
+
+        ec_exif_extract(&f_arr[i]);
 
         free(f_arr[i].name);
     }
