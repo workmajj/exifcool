@@ -101,8 +101,10 @@ void ec_exif_extract(ECFile *f)
     if (!ed) return; // FIXME
 
     ExifEntry *ent = exif_content_get_entry(ed->ifd[EC_EXIF_IFD], EC_EXIF_TAG);
-    exif_data_unref(ed);
-    if (!ent) return; // FIXME: tag doesn't exist
+    if (!ent) {
+        exif_data_unref(ed);
+        return; // FIXME: tag doesn't exist
+    }
 
     char buf[EC_EXIF_TAG_BYTES];
     exif_entry_get_value(ent, buf, sizeof(buf));
