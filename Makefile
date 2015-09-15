@@ -8,7 +8,7 @@ INCLUDES=trie.c
 all: clean exifcool
 
 exifcool:
-	$(CC) -o $(NAME) $(LIBS) $(NAME).c $(INCLUDES)
+	$(CC) -o $(NAME) $(LIBS) src/$(NAME).c src/$(INCLUDES)
 
 .PHONY: clean
 clean:
