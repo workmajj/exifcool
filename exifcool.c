@@ -15,7 +15,7 @@
 #define EC_EXIF_TAG EXIF_TAG_DATE_TIME
 #define EC_EXIF_TAG_BYTES 20 // per exif spec for datetime tags
 
-// #define EC_TRIE_STR_LEN 14 // for strings like "YYYYMMDDHHMMSS"
+// #define EC_TRIE_STR_LEN 14 // like "YYYYMMDDHHMMSS"
 
 typedef struct ECFile {
     char *name;
@@ -26,7 +26,7 @@ typedef struct ECFile {
 static void ec_buf_filter_digits(char *buf, const size_t size, char **strptr)
 {
     assert(buf != NULL && strnlen(buf, size) < size);
-    assert(*strptr != NULL && strptr != NULL);
+    assert(strptr != NULL);
 
     char *str = malloc(size);
     assert(str != NULL);
@@ -88,77 +88,89 @@ static void ec_exif_print(const char *file_name)
 
 /* dir */
 
-static size_t ec_dir_file_filter(const struct dirent *ep, const char *file_ext)
+static size_t ec_dir_filter(const struct dirent *ep, const char *f_ext)
 {
-    assert(ep != NULL && file_ext != NULL);
+    assert(ep != NULL);
+    assert(f_ext != NULL);
 
     if (ep->d_type != DT_REG) return 0; // ignore non-regular files
 
-    size_t lenext = strlen(file_ext);
-    if (lenext > ep->d_namlen) return 0;
+    size_t len_ext = strlen(f_ext);
+    if (len_ext > ep->d_namlen) return 0;
 
-    return (strncmp(ep->d_name + ep->d_namlen - lenext, file_ext, lenext) == 0);
+    return (strncmp(ep->d_name + ep->d_namlen - len_ext, f_ext, len_ext) == 0);
 }
 
-static size_t ec_dir_scan(const char *dir_name, const char *file_ext,
-    ec_file_t **files_ptr)
+static size_t ec_dir_count(const char *dir, const char *f_ext)
 {
-    assert(dir_name != NULL);
-    assert(file_ext != NULL);
+    assert(dir != NULL);
+    assert(f_ext != NULL);
 
-    DIR *dirp = opendir(dir_name);
+    DIR *dirp = opendir(dir);
     if (!dirp) {
-        printf("couldn't open dir %s\n", dir_name);
+        printf("couldn't open dir %s\n", dir);
         exit(1);
     }
 
+    size_t f_count = 0;
+
     struct dirent *ep;
-    size_t count_file = 0;
-
     while ((ep = readdir(dirp))) {
-        if (ec_dir_file_filter(ep, file_ext)) count_file++;
-    }
-
-    rewinddir(dirp);
-
-    if (count_file == 0) {
-        closedir(dirp);
-
-        printf("no files with ext %s in dir %s\n", file_ext, dir_name);
-        exit(0);
-    }
-
-    ec_file_t *files = malloc(count_file * sizeof(ec_file_t));
-    assert(files != NULL);
-
-    ec_file_t *filep = files;
-    size_t count_check = 0;
-
-    while ((ep = readdir(dirp))) {
-        if (!ec_dir_file_filter(ep, file_ext)) continue;
-
-        filep->name = malloc(ep->d_namlen * sizeof(char));
-        assert(filep->name != NULL);
-
-        strlcpy(filep->name, ep->d_name, ep->d_namlen + 1);
-
-        filep++;
-        count_check++;
+        if (ec_dir_filter(ep, f_ext)) f_count++;
     }
 
     closedir(dirp);
 
-    if (count_check != count_file) {
-        for (size_t i = 0; i < count_file; i++) free(files[i].name);
-        free(files);
+    if (f_count == 0) {
+        printf("no files with ext %s in dir %s\n", f_ext, dir);
+        exit(0);
+    }
 
-        printf("dir %s has been modified\n", dir_name);
+    return f_count;
+}
+
+static ec_file_t *ec_dir_list(const char *dir, const char *f_ext,
+    const size_t f_count)
+{
+    assert(dir != NULL);
+    assert(f_ext != NULL);
+    assert(f_count > 0);
+
+    DIR *dirp = opendir(dir);
+    if (!dirp) {
+        printf("couldn't open dir %s\n", dir);
         exit(1);
     }
 
-    *files_ptr = files;
+    ec_file_t *f_arr = malloc(f_count * sizeof(ec_file_t));
+    assert(f_arr != NULL);
 
-    return count_file;
+    ec_file_t *f_ptr = f_arr;
+    size_t chk_count = 0;
+
+    struct dirent *ep;
+    while ((ep = readdir(dirp))) {
+        if (!ec_dir_filter(ep, f_ext)) continue;
+
+        f_ptr->name = malloc(ep->d_namlen * sizeof(char));
+        assert(f_ptr->name != NULL);
+        strlcpy(f_ptr->name, ep->d_name, ep->d_namlen + 1);
+
+        f_ptr++;
+        chk_count++;
+    }
+
+    closedir(dirp);
+
+    if (chk_count != f_count) {
+        for (size_t i = 0; i < f_count; i++) free(f_arr[i].name);
+        free(f_arr);
+
+        printf("dir %s has been modified\n", dir);
+        exit(1);
+    }
+
+    return f_arr;
 }
 
 /* main */
@@ -173,16 +185,17 @@ int main(int argc, char *argv[])
 
     // dt_node_t *trie = dt_init(EC_TRIE_STR_LEN);
 
-    ec_file_t *files;
-    size_t count = ec_dir_scan(argv[1], argv[2], &files);
+    size_t f_count = ec_dir_count(argv[1], argv[2]);
+    ec_file_t *f_arr = ec_dir_list(argv[1], argv[2], f_count);
+    assert (f_arr != NULL);
 
-    for (size_t i = 0; i < count; i++) {
-        ec_exif_print(files[i].name);
+    for (size_t i = 0; i < f_count; i++) {
+        ec_exif_print(f_arr[i].name);
 
-        free(files[i].name);
+        free(f_arr[i].name);
     }
 
-    free(files);
+    free(f_arr);
 
     // dt_destroy(trie);
 
