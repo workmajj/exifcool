@@ -1,12 +1,14 @@
-#ifndef TRIE_H
-#define TRIE_H
+#ifndef DT_TRIE_H
+#define DT_TRIE_H
 
-struct DigitTrieNode;
-typedef struct DigitTrieNode DTNode;
+/* DigitTrie */
+
+struct dt_node;
+typedef struct dt_node DTNode;
 
 DTNode *dt_init(const size_t length); // returns root
 void dt_destroy(DTNode *root);
-size_t dt_inc(DTNode *root, const char *digit_str);
-size_t dt_get(DTNode *root, const char *digit_str);
 
-#endif // TRIE_H
+size_t dt_count(DTNode *root, const char *digit_str);
+
+#endif // DT_TRIE_H

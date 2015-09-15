@@ -6,14 +6,15 @@
 
 #define DT_SIZE 10 // array size for digits 0-9
 
-// all keys (digit_str) are strings of digits (e.g., "20140830143607")
-// specify fixed string length at init (doesn't include '\0' byte)
+// all digit_str keys are strings of digits (e.g., "20140830143607")
+// specify fixed strlen at init (doesn't include '\0' byte)
 // only one instance allowed because of global dt_length
+// func dt_count increments and then returns current count
 
 static size_t dt_length = 0; // uninitialized value
 
-struct DigitTrieNode {
-    struct DigitTrieNode *children[DT_SIZE];
+struct dt_node {
+    struct dt_node *children[DT_SIZE];
     size_t count;
 };
 
@@ -33,8 +34,6 @@ static DTNode *dt_alloc()
 
     for (size_t i = 0; i < DT_SIZE; i++) n->children[i] = NULL;
 
-    n->count = 0;
-
     return n;
 }
 
@@ -53,7 +52,7 @@ static void dt_free(DTNode *n)
 
 extern DTNode *dt_init(const size_t length)
 {
-    assert(length > 0 && length < SIZE_MAX);
+    assert(length > 0);
 
     dt_length = length;
 
@@ -69,9 +68,7 @@ extern void dt_destroy(DTNode *root)
     dt_free(root);
 }
 
-// TODO: make dt_inc and dt_get wrappers around single func
-
-extern size_t dt_inc(DTNode *root, const char *digit_str)
+extern size_t dt_count(DTNode *root, const char *digit_str)
 {
     assert(dt_length > 0); // init-ed
 
@@ -91,28 +88,5 @@ extern size_t dt_inc(DTNode *root, const char *digit_str)
         cur = cur->children[idx];
     }
 
-    return cur->count++; // increment and return
-}
-
-extern size_t dt_get(DTNode *root, const char *digit_str)
-{
-    assert(dt_length > 0); // init-ed
-
-    assert(root != NULL);
-    assert(digit_str != NULL);
-
-    size_t len = strnlen(digit_str, dt_length + 1);
-    assert(len == dt_length);
-
-    DTNode *curr = root;
-
-    for (size_t i = 0; i < len; i++) {
-        int idx = dt_ctoi(&digit_str[i]);
-
-        if (!curr->children[idx]) return 0; // not yet set
-
-        curr = curr->children[idx];
-    }
-
-    return curr->count;
+    return cur->count++; // increment then report count
 }
