@@ -101,17 +101,22 @@ void ec_exif_extract(ECFile *f)
     if (!ed) return; // FIXME
 
     ExifEntry *ent = exif_content_get_entry(ed->ifd[EC_EXIF_IFD], EC_EXIF_TAG);
-    if (!ent) return; // FIXME
+    if (!ent) {
+        exif_data_unref(ed);
+        return; // FIXME: tag doesn't exist
+    }
+
+    exif_data_unref(ed);
 
     char buf[EC_EXIF_TAG_BYTES];
     exif_entry_get_value(ent, buf, sizeof(buf));
     assert(buf != NULL);
 
+    printf("buf: %s\n", buf);
+
     char *tok;
     char *buf_ptr = buf;
     size_t i = 0;
-
-    printf("buf: %s\n", buf);
 
     while ((tok = strsep(&buf_ptr, ": "))) {
         switch (i) {
@@ -145,8 +150,7 @@ void ec_exif_extract(ECFile *f)
     printf("dt.day: %d\n", f->dt.day);
     printf("dt.hour: %d\n", f->dt.hour);
     printf("dt.minute: %d\n", f->dt.minute);
-    printf("dt.second: %d\n", f->dt.second);
-    printf("\n");
+    printf("dt.second: %d\n\n", f->dt.second);
 }
 
 size_t ec_dir_filter(const struct dirent *ep, const char *f_ext)
