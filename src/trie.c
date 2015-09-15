@@ -56,7 +56,7 @@ extern DTNode *dt_init(const size_t length)
 
     dt_length = length;
 
-    return dt_alloc();
+    return dt_alloc(); // return root
 }
 
 extern void dt_destroy(DTNode *root)
@@ -88,5 +88,5 @@ extern size_t dt_count(DTNode *root, const char *digit_str)
         cur = cur->children[idx];
     }
 
-    return cur->count++; // increment then report count
+    return cur->count++; // increment then return
 }
