@@ -31,68 +31,6 @@ typedef struct ec_file {
     struct ec_datetime dt;
 } ECFile;
 
-/*
-void ec_buf_filter_digits(char *buf, const size_t size, char **str_ptr)
-{
-    assert(buf != NULL);
-    assert(strnlen(buf, size) < size);
-    assert(str_ptr != NULL);
-
-    char *str = malloc(size);
-    assert(str != NULL);
-    memset(str, 0, size);
-
-    for (size_t i = 0, j = 0; i < size; i++) {
-        if (buf[i] >= EC_ASCII_0 && buf[i] <= EC_ASCII_9) {
-            str[j] = buf[i];
-            j++;
-        }
-    }
-
-    *str_ptr = str;
-}
-
-void ec_exif_print_date(const ExifData *ed)
-{
-    assert(ed != NULL);
-
-    ExifEntry *ent = exif_content_get_entry(ed->ifd[EC_EXIF_IFD], EC_EXIF_TAG);
-    if (!ent) {
-        printf("n/a");
-        return;
-    }
-
-    char buf[EC_EXIF_TAG_BYTES];
-    exif_entry_get_value(ent, buf, sizeof(buf));
-    assert(buf != NULL);
-
-    char *str;
-    ec_buf_filter_digits(buf, sizeof(buf), &str);
-    assert(str != NULL);
-
-    printf("%s", str);
-
-    free(str);
-}
-
-void ec_exif_print(const char *f_name)
-{
-    assert(f_name != NULL);
-
-    ExifData *ed = exif_data_new_from_file(f_name); // FIXME: need full path
-    if (!ed) {
-        printf("couldn't get exif data from %s\n", f_name);
-        return;
-    }
-
-    printf("%s => ", f_name);
-    ec_exif_print_date(ed);
-    printf("\n");
-
-    exif_data_unref(ed);
-}
-*/
-
 void ec_exif_extract(ECFile *f)
 {
     assert(f != NULL);
