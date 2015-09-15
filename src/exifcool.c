@@ -6,23 +6,13 @@
 
 #include <libexif/exif-data.h>
 
-typedef struct ec_datetime {
-    uint16_t year;
-    uint8_t month;
-    uint8_t day;
-    uint8_t hour;
-    uint8_t minute;
-    uint8_t second;
-} ECDateTime;
-
-typedef struct ec_file {
-    char *name;
-    struct ec_datetime dt;
-} ECFile;
+#include "struct.h"
 
 #include "digittrie.h"
 #include "dir.c"
 #include "exif.c"
+
+// FIXME: working on this
 
 int main(int argc, char *argv[])
 {
@@ -39,8 +29,6 @@ int main(int argc, char *argv[])
     assert (f_arr != NULL);
 
     for (size_t i = 0; i < f_count; i++) {
-        // ec_exif_print(f_arr[i].name);
-
         ec_exif_extract(&f_arr[i]);
 
         free(f_arr[i].name);
