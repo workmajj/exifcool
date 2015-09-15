@@ -1,5 +1,5 @@
-#ifndef DT_TRIE_H
-#define DT_TRIE_H
+#ifndef DT_DIGITTRIE_H
+#define DT_DIGITTRIE_H
 
 struct dt_node;
 typedef struct dt_node DTNode;
@@ -9,4 +9,4 @@ void dt_destroy(DTNode *root);
 
 size_t dt_count(DTNode *root, const char *digit_str);
 
-#endif // DT_TRIE_H
+#endif // DT_DIGITTRIE_H

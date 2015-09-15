@@ -3,7 +3,7 @@ NAME=exifcool
 CC=clang
 CFLAGS=-Wall -g
 LIBS=-lexif
-INCLUDES=trie.c
+INCLUDES=digittrie.c
 
 all: clean exifcool
 

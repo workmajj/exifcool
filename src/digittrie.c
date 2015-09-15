@@ -2,7 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "trie.h"
+#include "digittrie.h"
 
 #define DT_SIZE 10 // array size for digits 0-9
 

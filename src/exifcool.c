@@ -20,9 +20,9 @@ typedef struct ec_file {
     struct ec_datetime dt;
 } ECFile;
 
+#include "digittrie.h"
 #include "dir.c"
 #include "exif.c"
-#include "trie.h"
 
 int main(int argc, char *argv[])
 {
