@@ -1,4 +1,4 @@
-typedef struct ec_datetime {
+typedef struct ECDateTime {
     uint16_t year;
     uint8_t month;
     uint8_t day;
@@ -7,7 +7,7 @@ typedef struct ec_datetime {
     uint8_t second;
 } ECDateTime;
 
-typedef struct ec_file {
+typedef struct ECFile {
     char *name;
-    struct ec_datetime dt;
+    struct ECDateTime dt;
 } ECFile;
