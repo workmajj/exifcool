@@ -6,13 +6,13 @@
 
 #include <libexif/exif-data.h>
 
-#include "struct.h"
+#include "types.h"
 
 #include "digittrie.h"
 #include "dir.c"
 #include "exif.c"
 
-// FIXME: working on this
+// FIXME: WIP
 
 int main(int argc, char *argv[])
 {

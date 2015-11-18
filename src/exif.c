@@ -3,7 +3,7 @@
 
 #define EC_EXIF_TAG_BYTES 20 // per exif spec for datetime tags
 
-// FIXME: working on this
+// FIXME: WIP
 
 void ec_exif_extract(ECFile *f)
 {
