@@ -8,7 +8,7 @@ INCLUDES=digittrie.c
 all: clean exifcool
 
 exifcool:
-	$(CC) -o $(NAME) $(LIBS) src/$(NAME).c src/$(INCLUDES)
+	$(CC) -I/usr/local/include -L/usr/local/lib -o $(NAME) $(LIBS) src/$(NAME).c src/$(INCLUDES)
 
 .PHONY: clean
 clean:
