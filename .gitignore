@@ -1,3 +1,4 @@
 .DS_Store
-*.dSYM/
 exifcool
+src/*.d
+src/*.o

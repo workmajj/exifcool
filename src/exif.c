@@ -1,9 +1,15 @@
+#include <assert.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+#include <libexif/exif-data.h>
+
+#include "exifcool.h"
+
 #define EC_EXIF_IFD EXIF_IFD_0
 #define EC_EXIF_TAG EXIF_TAG_DATE_TIME
-
 #define EC_EXIF_TAG_BYTES 20 // per exif spec for datetime tags
-
-// FIXME: WIP
 
 void ec_exif_extract(ECFile *f)
 {

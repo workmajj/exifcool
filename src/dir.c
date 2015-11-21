@@ -1,3 +1,11 @@
+#include <assert.h>
+#include <dirent.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+#include "exifcool.h"
+
 size_t ec_dir_filter(const struct dirent *ep, const char *f_ext)
 {
     assert(ep != NULL);
