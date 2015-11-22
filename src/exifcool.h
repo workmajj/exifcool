@@ -1,5 +1,5 @@
-#ifndef EXIFCOOL_H
-#define EXIFCOOL_H
+#ifndef EC_EXIFCOOL_H
+#define EC_EXIFCOOL_H
 
 typedef struct ECDateTime {
     uint16_t year;
@@ -20,4 +20,4 @@ ECFile *ec_dir_list(const char *dir, const char *f_ext, const size_t f_count);
 
 void ec_exif_extract(ECFile *f);
 
-#endif // EXIFCOOL_H
+#endif // EC_EXIFCOOL_H
